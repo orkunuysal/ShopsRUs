@@ -28,16 +28,13 @@ namespace Discount.Application.Services
             Segment segment = await _segmentRepository.GetSegmentByType(customerInfo.SegmentType);
             var loyaltyDiscount = await _segmentRepository.GetSegmentByType(SegmentTypesEnum.Loyalty.ToString());
 
-            List<Product> products = new List<Product>();
+            List<Product> products = new();
             decimal productDiscount = 0;
             foreach (var product in bill.Products)
             {
                 if (product.Category != ProductCategoryEnum.Groceries)
                 {
-                    decimal discountRate = (SegmentTypesEnum)Enum.Parse(typeof(SegmentTypesEnum), segment.Type) == SegmentTypesEnum.Default ?
-                                            customerInfo.CreatedDate <= DateTime.UtcNow.AddYears(-2) ? 
-                                            loyaltyDiscount.DiscountRate:0 
-                                                : segment.DiscountRate;
+                    decimal discountRate = CalculateDiscountRate(customerInfo, segment, loyaltyDiscount);
                     if (discountRate > 0)
                     {
                         product.Discount = product.Price * discountRate / 100;
@@ -53,11 +50,45 @@ namespace Discount.Application.Services
             invoice.Products = products;
             invoice.Amount = products.Sum(prd => prd.Price);
             invoice.Discount = productDiscount;
-            var extraDiscount = Math.Floor((invoice.Amount - invoice.Discount) / 100);
-            invoice.ExtraDiscount = extraDiscount > 1 ? extraDiscount * 5: 0;
+            invoice.ExtraDiscount = CalculateExtraDiscount(invoice);
             invoice.TotalAmount = invoice.Amount - invoice.Discount - invoice.ExtraDiscount;
 
             return invoice;
+        }
+
+        private static decimal CalculateExtraDiscount(Invoice invoice)
+        {
+            var discountByTotal = Math.Floor((invoice.Amount - invoice.Discount) / 100);
+            decimal extraDiscount;
+            if (discountByTotal > 1)
+            {
+                extraDiscount = discountByTotal * 5;
+            }
+            else
+            {
+                extraDiscount = 0;
+            }
+
+            return extraDiscount;
+        }
+
+        private static decimal CalculateDiscountRate(Customer customerInfo, Segment segment, Segment loyaltyDiscount)
+        {
+            if ((SegmentTypesEnum)Enum.Parse(typeof(SegmentTypesEnum), segment.Type) == SegmentTypesEnum.Default)
+            {
+                if (customerInfo.CreatedDate <= DateTime.UtcNow.AddYears(-2))
+                {
+                    return loyaltyDiscount.DiscountRate;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            else
+            {
+                return segment.DiscountRate;
+            }
         }
     }
 }
