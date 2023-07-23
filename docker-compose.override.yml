@@ -1,0 +1,28 @@
+version: '3.4'
+
+services:
+
+  customerinfodb:
+    container_name: customerinfopostgres
+    restart: always
+    environment:
+      - POSTGRES_USER=orkunuysal
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=CustomerInfoDB
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    ports:
+       - "6391:5432"
+    volumes:
+       - "postgres_data:/data/postgres"
+       - .:/docker-entrypoint-initdb.d
+    networks:
+      - discount
+
+  discount.api:
+    container_name: discount.api
+    depends_on:
+      - customerinfodb
+    ports:
+      - "8093:80"
+    networks:
+      - discount
