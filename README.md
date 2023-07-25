@@ -9,7 +9,6 @@ Final Invoice will return with detailed information with discounts applied
 
 ## Running project
 Project can be run on docker containers with command below:
- terminal
   ```sh
   docker-compose up --build
   ```
