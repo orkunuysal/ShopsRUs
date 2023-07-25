@@ -14,7 +14,7 @@ namespace Discount.Infrastructure.Context
         public CustomerInfoContext(DbContextOptions<CustomerInfoContext> options) : base(options)
         {
         }
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        /*protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
@@ -25,7 +25,7 @@ namespace Discount.Infrastructure.Context
                 var connectionString = configuration.GetConnectionString("CustomerInfoDB");
                 optionsBuilder.UseNpgsql(connectionString);
             }
-        }
+        }*/
         public DbSet<Customer> Customer { get; set; }
         public DbSet<Segment> Segment { get; set; }
 
