@@ -1,4 +1,5 @@
-﻿using Discount.Domain.Entities;
+﻿using Discount.Application.Exceptions;
+using Discount.Domain.Entities;
 using Discount.Domain.Enums;
 using Discount.Domain.Models;
 using Discount.Infrastructure.Contracts;
@@ -25,6 +26,9 @@ namespace Discount.Application.Services
         {
             Invoice invoice = new();
             Customer customerInfo = await _customerRepository.GetByIdAsync(bill.CustomerId);
+            if (customerInfo is null) {
+                throw new CustomerNotFoundException($"Customer with id {bill.CustomerId} not found.");
+            }
             Segment segment = await _segmentRepository.GetSegmentByType(customerInfo.SegmentType);
             var loyaltyDiscount = await _segmentRepository.GetSegmentByType(SegmentTypesEnum.Loyalty.ToString());
 
